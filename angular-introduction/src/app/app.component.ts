@@ -13,10 +13,5 @@ export class AppComponent {
   name : string = "Giannis";
   lastname = "Kaparos";
 
-  person = {
-    givenName: "Giannis",
-    surName: "Kaparos",
-    age: 0x37,
-    email: "gkaparos@aueb.gr"
-  };
+
 }
