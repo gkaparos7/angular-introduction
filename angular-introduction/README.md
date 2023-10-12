@@ -1,4 +1,4 @@
-# Εισαγωγή στην Angular Framework
+# Εισαγωγή στo Angular Framework
 
 ## 12/10/2023
 
