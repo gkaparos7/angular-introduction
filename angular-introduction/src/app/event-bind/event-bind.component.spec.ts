@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PersonAltComponent } from './person-alt.component';
+import { EventBindComponent } from './event-bind.component';
 
-describe('PersonAltComponent', () => {
-  let component: PersonAltComponent;
-  let fixture: ComponentFixture<PersonAltComponent>;
+describe('EventBindComponent', () => {
+  let component: EventBindComponent;
+  let fixture: ComponentFixture<EventBindComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [PersonAltComponent]
+      imports: [EventBindComponent]
     });
-    fixture = TestBed.createComponent(PersonAltComponent);
+    fixture = TestBed.createComponent(EventBindComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

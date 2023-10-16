@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Person } from '../interfaces/person';
 
 @Component({
-  selector: 'app-person-alt',
+  selector: 'app-person-card',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './person-alt.component.html',
-  styleUrls: ['./person-alt.component.css'],
+  templateUrl: './person-card.component.html',
+  styleUrls: ['./person-card.component.css'],
 })
-export class PersonAltComponent {
+export class PersonCardComponent {
   @Input() person: Person | undefined;
 }

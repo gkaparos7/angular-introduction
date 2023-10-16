@@ -1,28 +1,29 @@
-<ng-container *ngif="person"; else nodata>
-<table>
+<ng-container *ngIf="person; else nodata">
+  <hr />
+  <table>
     <tr>
-        <td class="header">Firstname</td>
-        <td>{{ person.givenName }}</td>
+      <td class="header">First Name</td>
+      <td>{{ person.givenName }}</td>
     </tr>
     <tr>
-        <td class="header">Lastname</td>
-        <td>{{ person.surName }}</td>
+      <td class="header">Last Name</td>
+      <td>{{ person.surName }}</td>
     </tr>
     <tr>
-        <td class="header">Age</td>
-        <td>{{ person.age }}</td>
+      <td class="header">Age</td>
+      <td>{{ person.age }}</td>
     </tr>
     <tr>
-        <td class="header">Email</td>
-        <td>{{ person.email }}</td>
+      <td class="header">Email</td>
+      <td>{{ person.email }}</td>
     </tr>
     <tr>
-        <td class="header">Address</td>
-        <td>{{ person.address }}</td>
+      <td class="header">Address</td>
+      <td>{{ person.address }}</td>
     </tr>
-</table>
+  </table>
 </ng-container>
 
 <ng-template #nodata>
-    <p>No person details</p>
+  <p>No person details</p>
 </ng-template>
