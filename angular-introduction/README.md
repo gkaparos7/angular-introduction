@@ -1,12 +1,167 @@
 # Εισαγωγή στo Angular Framework
 
+## 18. CRUD users: Update User
+
+- Δημιουργία του `CrudUserFormComponent` στον κατάλογο `src/app/crud-demo/utils`. Πρακτικά αντιγράψαμε το component από το `08-Reactive-Forms` branch. Καθώς όμως πρόκειται για την περίπτωση του Update χρειάζεται να επέμβουμε στο `FormGroup` και να προσθέσουμε το πεδίο `id` γιατί μόνο έτσι θα είναι εφικτή η πράξη του Update (μεταβολή των στοιχείων του χρήστη με το **συγκεκριμένο id**):
+  ```typescript
+  form = new FormGroup({
+      id: new FormControl(0),     // Είναι απαραίτητη αυτή η εισαγωγή για το Update!
+      givenName: new FormControl('', Validators.required),
+      surName: new FormControl('', Validators.required),
+      age: new FormControl(0, [
+        Validators.required,
+        Validators.min(18),
+        Validators.max(120),
+      ]),
+      email: new FormControl('', [Validators.required, Validators.email]),
+      address: new FormControl('', Validators.required),
+      photoURL: new FormControl(''),
+    });
+  ```
+- Το `CrudUserFormComponent` διαφέρει από το `ReactiveFormComponent` και σε ένα άλλο σημείο: δέχεται σαν Input τα στοιχεία του χρήστη που ενδεχομένως να επεξεργαστεί η φόρμα (αν δεν περάσει κάποια τιμή στο Input τότε η φόρμα θα χρησιμοποιηθεί για τη δημιουργία χρήστη, ενώ αν περάσει Input τότε η φόρμα θα επεξεργαστεί τα στοιχεία του χρήστη).
+- Στην περίπτωση που περάσει κάποιο Input τότε χρειάζεται να επέμβουμε στο χαρακτηριστικό `form` και να αλλάξουμε τις τιμές των πεδίων του ώστε να μην είναι κενά αλλά να περιέχουν πλέον τα δεδομένα του χρήστη που πέρασε σαν Input. Αυτό γίνεται αν η κλάση του component υλοποιήσει το interface `OnChanges`:
+  ```typescript
+  export class CrudUserFormComponent implements OnChanges {
+  ...
+  @Input() personInput: Person | undefined;
+  ...
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['personInput']?.currentValue) {
+      this.form.patchValue(changes['personInput'].currentValue);
+    }
+  }
+  ```
+- Στη μέθοδο `ngOnChanges` περνά αυτόματα σαν παράμετρος το αντικείμενο `changes` που περιέχει σαν χαρακτηριστικά όλα τα ορισμένα Input του component. Στην περίπτωσή μας το Input `personInput` είναι προσβάσιμο με `changes['personInput']` (δεν χρησιμοποιείται το dot notation γιατί το Angular Framework δεν είναι δυνατό να γνωρίζει εκ των προτέρων το όνομα που θα δώσουμε στο Input).
+- Η τιμή του Input είναι προσβάσιμη με το `changes['personInput']?.currentValue`.
+- Χρησιμοποιούμε την τιμή σε συνδυασμό με το `patchValue` του αντικειμένου form για να αρχικοποιήσουμε τις τιμές των πεδίων της φόρμας με τα δεδομένα που πέρασαν σαν Input
+- Ενημέρωση του `AppService` για τη διαδικασία του Update:
+  ```typescript
+  updateUser(user: Person) {
+    console.log('SERVICE', user);
+    return this.http.put<Person>(`${API}/${user.id}`, user);
+  }
+  ```
+
+## 17. CRUD users: Utility Components
+
+- Δημιουργία του `CrudUserSearchComponent` στον κατάλογο `src/app/crud-demo/utils`. Πρόκειται για μεταφορά από το `ReadUserComponent` της λειτουργίας της αναζήτησης όπου ο χρήστης εισάγει στο πλαίσιο το id και με το πλήκτρο της αναζήτησης χρησιμοποιούμε το `AppService` για να ανασύρουμε από τη βάση τις πληροφορίες του χρήστη. Οι πληροφορίες του χρήστη μεταφέρονται στο component γονέα με κατάλληλο custom event που μεταφέρει data τύπου `Person`.
+- Δημιουργία του `DangerAreYouSureComponent` με σκοπό την εισαγωγή επιβεβαίωσης από το χρήστη πως είναι σύμφωνος για μια "καταστροφική" ενέργεια (π.χ. τη διαγραφή του χρήστη). Η επιβεβαίωση μεταφέρεται στο component γονέα με κατάλληλο custom event που μεταφέρει ένα boolean (true: ο χρήστης είναι σύμφωνος με την "καταστροφική" ενέργεια, αντίστοιχα για το false).
+- Χρήση των δύο νέων component στο `DeleteUSerComponent`:
+    ```html
+    <div class="d-flex flex-column gap-2">
+      <app-crud-user-search
+        (userFound)="onUserFound($event)"
+      ></app-crud-user-search>
+    
+      <div *ngIf="foundUser" class="d-flex flex-column gap-2">
+        <app-person-card [person]="foundUser"></app-person-card>
+        <app-danger-are-you-sure
+          (confirm)="onConfirm($event)"
+        ></app-danger-are-you-sure>
+      </div>
+    </div>
+    ```
+
+## 16. CRUD users: Housekeeping
+
+- Από λάθος πληκτρολόγησης πήγαμε από το 14 στο 16
+- Δημιουργήσαμε ένα υποκατάλογο `src/app/crud-demo/crud` με σκοπό να τακτοποιήσουμε εκεί όλα τα CRUD components (κατάλογοι `create-user`, `read-user`, `update-user`, `delete-user`)
+- Κάναμε drag and drop τα 4 directories από τον κατάλογο `src/app/crud-demo` στον κατάλογο `src/app/crud-demo/crud`
+- Δημιουργήσαμε υποκατάλογο `src/app/crud-demo/utils` και μετακινήσαμε εκεί με drag and drop τον κατάλογο `list-users`
+- Σε κάθε βήμα μετακίνησης ο VSCODE μας βοηθάει με κατάληλα μηνύματα και ενημερώνει τα import paths όπου χρειάζεται. Αρκεί να αποδεχτούμε τις προτροπές "Update imports for ...?" για να βρεθούμε ξανά σε λειοτυργική κατάσταση
+
+## 14. CRUD users: Delete 
+
+- Σχεδόν ίδια περίπτωση με το branch 12-Users-CRUD-Read-Users
+- Χρησιμοποιούμε την ίδια υπο-φόρμα που ζητά το user id και στη συνέχεια αντί να αναζητήσει με σκοπό τη μεταφορά των δεδομένων στο template καλεί τη διαδικασία της διαγραφής από το AppService.
+
+## 13. CRUD users: Create User
+
+- Άμεση χρήση του παραδείγματος της Reactive Form από το branch 08-Reactive-Forms
+
+## 12. CRUD users: Read User
+
+- Πρόσβαση σε template variable μέσω του `@ViewChild`:
+  ```typescript
+  @ViewChild('userId') userIdInput!: ElementRef<HTMLInputElement>;
+  ...
+  const id = this.userIdInput.nativeElement.value;
+  ```
+- Πέρασμα αντικειμένου με χαρακτηριστικά `next`, `error` και `complete` και τιμές τα αντίστοιχα callbacks σαν όρισμα στο subscribe στην κλήση του `HttpClient` που γίνεται διαμέσου του `AppService`:
+  ```typescript
+  ... this.service.action(parameters).subscribe({
+    next: (data) => {
+      // do something with data
+    },
+    error: (error) => {
+      // handle the error
+    },
+    complete: () => {
+      // The operation completed
+    });
+  ```
+
+## 11. CRUD users: List Users
+
+- Δημιουργία component που εμφανίζει όλους τους χρήστες "της βάσης του json-server"
+- Χρησιμοποιεί το `AppService` στο `ngOnInit` για να λάβει δεδομένα από "τη βάση" και να τα θέσει σαν τιμή του χαρακτηριστικού `users`.
+
+## 10. CRUD users scaffolding
+
+- Δημιουργία υποεφαρμογής "CRUD χρηστών" στον κατάλογο `crud-demo`:
+  ```
+  ng g c crud-demo/crud-demo
+  ng g c crud-demo/create-user
+  ng g c crud-demo/read-user
+  ng g c crud-demo/update-user
+  ng g c crud-demo/delete-user
+  ng g c crud-demo/list-users
+  ```
+- Χρήση του `<ng-container>`, `[ngSwitch]`, `*ngSwitchCase` και συνδυασμός τους με τον click handler ενός dropdown για την πλοήγηση ανάμεσα στα component παιδιά.
+
+## 9. Http Client
+
+- npm i -g json-server
+- create users.json from users table, added id field
+- json-server --watch users.json
+- ng generate service app --dry-run
+  CREATE src/app/app.service.spec.ts (342 bytes)
+  CREATE src/app/app.service.ts (132 bytes)
+- Για να μπορέσουμε να χρησιμοποιήσουμε το HttpClient πρέπει να το προσθέσουμε στο app.config.ts:
+
+  ```typescript
+  import { ApplicationConfig, importProvidersFrom } from "@angular/core";
+  import { HttpClientModule } from "@angular/common/http";
+
+  export const appConfig: ApplicationConfig = {
+    providers: [importProvidersFrom(HttpClientModule)],
+  };
+  ```
+
+- Get all users στο app.service
+- Constructor inject app service στο app component
+- Αρχικοποίηση του πίνακα user στο ngOnInit
+
 ## 8. Reactive forms
 
--
+Η φόρμα ορίζεται στο component και συνδέεται με τα input του template. Ένας click handler μεταφέρει τα δεδομένα στο component και στη συνέχεια ένα EventEmitter μεταφέρει τα δεδομένα στο component γονέα.
+
+- Χρήση του `ReactiveFormsModule` στον πίνακα imports του component (εμπλουτίζει τα templates με επιπλέον HTML markup ώστε να μπορούν να συσχετιστούν με τα χαρακτηριστικά του component).
+- Χρήση των κλάσεων `FormGroup` και `FormControl` για τη δόμηση του αντικειμένου που παράγεται από τη φόρμα. Χρήση των `Validators`.
+- Δέσμευση του χαρακτηριστικού `form` του component με χρήση του `<form [formGroup]="form">...</form>`.
+- Σύνδεση του input με το `FormControl` με χρήση του `formControlName`.
+- Άμεση πρόσβαση στο πεδίο της φόρμας με το `form.get('όνομα πεδίου')`
+- Κατά το Submit το χαρακτηριστικό `form` έχει ήδη τιμή στο component.
 
 ## 7. Template driven forms
 
--
+Η φόρμα ορίζεται στο template και μεταφέρει δεδομένα στο component κατά την υποβολή της. Συνήθως τότε, ένα EventEmitter μεταφέρει τα δεδομένα στο component γονέα.
+
+- Χρήση του `FormsModule` στον πίνακα imports του component (εμπλουτίζει τα templates με επιπλέον HTML markup ώστε να δημιουργούνται objects από τις φόρμες).
+- `<form #form="ngForm">...</form>` ορίζει πως η HTML φόρμα δημιουργεί ένα αντικείμενο που είναι διαχειρίσιμο στα πλαίσια του template με τη μεταβλητή (template variable) `form`.
+- Το αντικείμενο `form` περνά σαν όρισμα στο `onSubmit(form)` όταν συμβεί το event `onSubmit` (ελέγχεται από το κουμπί Submit που μπορεί να πατηθεί μόνο όταν η φόρμα είναι ορθά συμπληρωμένη (valid)).
+- Δίνουμε στο name του input το όνομα του χαρακτηριστικού του αντικειμένου που παράγει η φόρμα και σχετίζεται (το χαρακτηριστικό) με το συγκεκριμένο input. Το συγκεμριμένο χαρακτηριστικό συμμετέχει στο αντικείμενο μόνο αν συμπεριλάβουμε την οδηγία `ngModel`.
+- Με το `#givenName="ngModel"` δηλώνουμε τη μεταβλητή template με όνομα `givenName` που είναι αντικείμενο που μπορεί να εξεταστεί για την ορθότητά του με το `givenName.invalid` και να χρησιμοποιηθεί για την υπο συνθήκη εμφάνιση επεξηγηματικού κειμένου για το ενδεχόμενο λάθος ορθότητας.
 
 ## 6. Component Output
 
