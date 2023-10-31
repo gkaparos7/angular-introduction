@@ -1,5 +1,170 @@
 # Εισαγωγή στo Angular Framework
 
+## 21. Porting Components to Angular Material
+
+- `npm i css-fx-layout` για να μπορούμε εύκολα να χρησιμοποιούμε το flexbox στα template:
+  1. styles.css -> styles.scss (angular.json)
+  2. προσθήκες από το https://t.ly/UFt0D
+- Εκκαθάριση του `app.component.ts` (πλέον έχουμε υλοποιήσει routing μέσω του `app.routes.ts` και μόνο εκεί θα γίνονται import τα components που αφορούν στο μενού)
+- Porting του `EventBindComponent`:
+
+  1. Προσθήκη route στο `app.routes.ts`:
+
+  ```typescript
+  import { Routes } from "@angular/router";
+
+  import { WelcomeComponent } from "./welcome/welcome.component";
+  import { EventBindComponent } from "./event-bind/event-bind.component";
+
+  export const routes: Routes = [
+    { path: "home", component: WelcomeComponent },
+    { path: "event-bind", component: EventBindComponent },
+  ];
+  ```
+
+  2. Προσθήκη επιλογής στο μενού της εφαρμογής (`application-layout.component.html`) προς το path του route με χρήση του `routerLink`:
+
+  ```html
+  ...
+  <a mat-list-item routerLink="home">Home</a>
+  <a mat-list-item routerLink="event-bind">Event Binding</a>
+  ...
+  ```
+
+  3. Χρήση του Angular material και του `css-fx-Layout` στο template του `EventBindingComponent`
+
+- Porting του Crud demo:
+
+  1. Αλλαγή στο template του `ApplicationLayoutComponent` στο μενού με τις υποεπιλογές:
+
+  ```html
+    <mat-expansion-panel-header>
+        <mat-panel-title> CRUD Demo </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <a mat-list-item routerLink="crud-demo/create">Create</a>
+      <a mat-list-item routerLink="crud-demo/read">Read</a>
+      <a mat-list-item routerLink="crud-demo/update">Update</a>
+      <a mat-list-item routerLink="crud-demo/delete">Delete</a>
+      <a mat-list-item routerLink="crud-demo/delete">List</a>
+    </mat-expansion-panel>
+  ```
+
+  2. Δημιουργία των routes στο αρχείο `app.routes.ts`
+
+  3. Μεταφορά του `ListUsersComponent` στο Angular material και χρήση του `MatTable`
+
+  4. Μεταφορά του `CrudUserSearch` στο Angular Material
+
+## 20. Router Module primer
+
+- Σκοπός μας είναι να κάνουμε επιλογές από το μενού στα αριστερά και τα component να εμφανίζονται στο χώρο δεξιά.
+- Δημιουργία του Welcome component, αυτό που θα εμφανίζεται πρώτο όταν ξεκινήσει η εφαρμογή (χρησιμοποιεί κι ένα λογότυπο από το `/assets`):
+  ```bash
+  ng g c welcome
+  ```
+- Δημιουργία αρχείου `app.routes.ts` που θα περιέχει τον κατάλογο των path που εμφανίζονται στο μενού της εφαρμογής με το Angular component που αντιστοιχεί στο path.
+
+  ```typescript
+  import { Routes } from "@angular/router";
+
+  import { WelcomeComponent } from "./welcome/welcome.component";
+
+  export const routes: Routes = [{ path: "home", component: WelcomeComponent }];
+  ```
+
+- Για να είναι εφικτή λειτουργικά η αντιστοίχηση είναι απαραίτητο να επέμβουμε στο `app.config.ts`:
+
+  ```typescript
+  ...
+  import { provideRouter } from '@angular/router';
+  import { routes } from './app.routes';
+
+  export const appConfig: ApplicationConfig = {
+    providers: [
+      importProvidersFrom(HttpClientModule),
+      provideAnimations(),
+      provideRouter(routes),
+    ],
+  };
+  ```
+
+- Τότε γίνεται εφικτή η χρήση του routerLink στα templates (συμπεριλαμβάνουμε το RouterModule στο κατάλογο των imports του `ApplicationLayoutComponent`):
+
+  ```typescript
+  ...
+  import { RouterModule } from '@angular/router';
+
+  @Component({
+    selector: 'app-application-layout',
+    standalone: true,
+    imports: [
+      CommonModule,
+      RouterModule,
+      MatToolbarModule,
+  ...
+  ```
+
+- Το ακριβές σημείο στο template που θα εισάγονται τα component δηλώνεται με τη χρήση του tag `<router-outlet>`:
+
+  ```html
+  ...
+  </mat-toolbar>
+    <div class="container"><router-outlet></router-outlet></div>
+  <footer class="footer">
+  ...
+  ```
+
+- Παράδειγμα ροής για μια επιλογή του χρήστη:
+  1. Ο χρήστης επιλέγει κάτι από το μενού που στην HTML το tag που αφορά την επιλογή συμπεριλαμβάνει την οδηγία `routerLink`, π.χ. στο `application-layout.component.html` το tag `<a mat-list-item routerLink="home">Home</a>`.
+  2. Ο έλεγχος μεταβιβάζεται στο αρχείο `app.routes.ts` όπου γίνεται αναζήτηση στον πίνακα `routes` για την εύρεση του αντικειμένου που έχει τιμή στο χαρακτηριστικό `path` ίδια με την τιμή του `routerLink` στο tag από το βήμα 1.
+  3. Στο πλαίσιο του `<router-outlet></router-outlet>` εμφανίζεται το component από το χαρακτηριστικό του αντικειμένου του βήματος 2.
+
+## 19. Angular Material UI
+
+- Ενσωμάτωση του [Angular Material UI](https://material.angular.io/)
+
+  - ```bash
+    ng add @angular/material
+
+    ℹ Using package manager: npm
+    ✔ Found compatible package version: @angular/material@16.2.10.
+    ✔ Package information loaded.
+
+    The package @angular/material@16.2.10 will be installed and executed.
+    Would you like to proceed? Yes
+    ✔ Packages successfully installed.
+    ? Choose a prebuilt theme name, or "custom" for a custom theme: Indigo/Pink
+      [ Preview: https://material.angular.io?theme=indigo-pink ]
+    ? Set up global Angular Material typography styles? Yes
+    ? Include the Angular animations module? Include and enable animations
+    UPDATE package.json (1146 bytes)
+    ✔ Packages installed successfully.
+    UPDATE src/app/app.config.ts (328 bytes)
+    UPDATE angular.json (3151 bytes)
+    UPDATE src/index.html (587 bytes)
+    UPDATE src/styles.css (214 bytes)
+    ```
+
+  - Διαγράφουμε τις ρυθμίσεις του bootstrap στο `angular.json`:
+    ```json
+    ...
+    "styles": [
+              "@angular/material/prebuilt-themes/indigo-pink.css",
+              "src/styles.css"
+            ],
+    "scripts": []
+    ...
+    ```
+  - Δημιουργούμε ένα νέο component που θα περιέχει το material design layout της εφαρμογής μας (component, template, css):
+    ```bash
+    ng g c application-layout
+    ```
+  - Στο `app.component.html` έχουμε μόνο ένα component (αφού συμπεριλαμβάνουμε το `ApplicationLayoutComponent` στον πίνακα `imports` του `app.component.ts`):
+    ```html
+    <app-application-layout></app-application-layout>
+    ```
+
 ## 18. CRUD users: Update User
 
 - Δημιουργία του `CrudUserFormComponent` στον κατάλογο `src/app/crud-demo/utils`. Πρακτικά αντιγράψαμε το component από το `08-Reactive-Forms` branch. Καθώς όμως πρόκειται για την περίπτωση του Update χρειάζεται να επέμβουμε στο `FormGroup` και να προσθέσουμε το πεδίο `id` γιατί μόνο έτσι θα είναι εφικτή η πράξη του Update (μεταβολή των στοιχείων του χρήστη με το **συγκεκριμένο id**):
